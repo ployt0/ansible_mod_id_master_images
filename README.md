@@ -10,3 +10,6 @@ images which WordPress resizes have "-[0-9]+x[0-9]+" appended to their basenames
 
 I decided I don't know enough about WordPress to continue development of this, for now. Also I
 can forego using images, since I'm mostly just coding.
+
+I don't know too much about Ansible either. Remember to put new modules in the "library" subfolder underneath
+the playbook that uses them. I've a lot to learn!
