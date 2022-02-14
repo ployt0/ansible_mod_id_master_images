@@ -1,0 +1,43 @@
+---
+
+
+- name: Sync original images from "uploads".
+  hosts: all
+  vars:
+    uploads_path: /var/www/html/example.com/wp-content/uploads/
+    local_copy_root: ~/backups
+  tasks:
+  - name: Determine original uploaded media
+    wp_original_img_finder:
+      path: "{{ uploads_path }}"
+    register: upload_contents
+
+  - name: List subdirectories
+    ansible.builtin.debug:
+      msg: "{{ item }}"
+    with_items: "{{ upload_contents.directories }}"
+
+  - name: List master images
+    ansible.builtin.debug:
+      msg: "{{ item }}"
+    loop: "{{ upload_contents.master_files }}"
+
+  - name: Create local directory
+    file:
+      path: "{{ local_copy_root }}/uploads/"
+      state: directory
+    delegate_to: localhost
+
+  - name: Reflect remote subdirectories
+    file:
+      path: "{{ local_copy_root }}/uploads/{{ item | regex_replace(uploads_path) }}"
+      state: directory
+    delegate_to: localhost
+    with_items: "{{ upload_contents.directories }}"
+
+  - name: Synchronise using rsync protocol, pull
+    ansible.posix.synchronize:
+      mode: pull
+      src: "{{ item }}"
+      dest: "{{ local_copy_root }}/uploads/{{ item | regex_replace(uploads_path) }}"
+    with_items: "{{ upload_contents.master_files }}"
